@@ -102,3 +102,7 @@
     box-shadow: var(--shadow-glow);
   }
 }
+
+html {
+  scroll-behavior: smooth;
+}
