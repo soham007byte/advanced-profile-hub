@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { ExternalLink, Github, Brain, ScanFace } from "lucide-react";
 
 const projects = [
@@ -45,61 +45,101 @@ const ProjectsSection = () => {
 
         <div className="grid md:grid-cols-2 gap-8">
           {projects.map((project, i) => (
-            <motion.div
-              key={project.title}
-              initial={{ opacity: 0, y: 40 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.15 }}
-              className="group glass-card overflow-hidden hover-glow"
-            >
-              {/* Header gradient */}
-              <div className={`h-2 bg-gradient-to-r ${project.color}`} />
-
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-                    <project.icon size={28} />
-                  </div>
-                  <div className="flex gap-3">
-                    <a
-                      href={project.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <Github size={20} />
-                    </a>
-                    <a
-                      href={project.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <ExternalLink size={20} />
-                    </a>
-                  </div>
-                </div>
-
-                <h3 className="text-2xl font-bold text-foreground mb-1">{project.title}</h3>
-                <p className="text-primary font-mono text-sm mb-4">{project.subtitle}</p>
-                <p className="text-muted-foreground leading-relaxed mb-6">{project.description}</p>
-
-                <div className="flex flex-wrap gap-2">
-                  {project.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 rounded-md bg-secondary text-secondary-foreground text-xs font-mono font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+            <ProjectCard key={project.title} project={project} index={i} inView={inView} />
           ))}
         </div>
       </div>
     </section>
+  );
+};
+
+const ProjectCard = ({ project, index, inView }: { project: typeof projects[0]; index: number; inView: boolean }) => {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      initial={{ opacity: 0, y: 50, scale: 0.95 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.7, delay: index * 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+      whileHover={{ y: -10, transition: { duration: 0.3 } }}
+      className="group glass-card overflow-hidden hover-glow relative"
+    >
+      {/* Spotlight follow cursor */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, hsl(172 66% 50% / 0.08), transparent 40%)`,
+        }}
+      />
+
+      {/* Animated header gradient */}
+      <motion.div
+        className={`h-2 bg-gradient-to-r ${project.color}`}
+        whileHover={{ scaleY: 2 }}
+        transition={{ duration: 0.3 }}
+      />
+
+      <div className="p-8 relative z-10">
+        <div className="flex items-start justify-between mb-4">
+          <motion.div
+            className="p-3 rounded-lg bg-primary/10 text-primary"
+            whileHover={{ rotate: [0, -15, 15, 0], scale: 1.2 }}
+            transition={{ duration: 0.5 }}
+          >
+            <project.icon size={28} />
+          </motion.div>
+          <div className="flex gap-3">
+            {[
+              { href: project.github, icon: Github },
+              { href: project.github, icon: ExternalLink },
+            ].map((link, j) => (
+              <motion.a
+                key={j}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                whileHover={{ scale: 1.2, y: -2 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <link.icon size={20} />
+              </motion.a>
+            ))}
+          </div>
+        </div>
+
+        <h3 className="text-2xl font-bold text-foreground mb-1">{project.title}</h3>
+        <p className="text-primary font-mono text-sm mb-4">{project.subtitle}</p>
+        <p className="text-muted-foreground leading-relaxed mb-6">{project.description}</p>
+
+        <div className="flex flex-wrap gap-2">
+          {project.tags.map((tag, j) => (
+            <motion.span
+              key={tag}
+              initial={{ opacity: 0, y: 10 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: index * 0.2 + 0.5 + j * 0.06 }}
+              whileHover={{ scale: 1.1, y: -2, boxShadow: "0 4px 12px hsl(172 66% 50% / 0.15)" }}
+              className="px-3 py-1 rounded-md bg-secondary text-secondary-foreground text-xs font-mono font-medium cursor-default"
+            >
+              {tag}
+            </motion.span>
+          ))}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 

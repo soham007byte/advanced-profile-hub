@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Code2, Brain, Layers, Wrench } from "lucide-react";
 
 const skillGroups = [
@@ -53,32 +53,61 @@ const SkillsSection = () => {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {skillGroups.map((group, i) => (
-            <motion.div
-              key={group.title}
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="glass-card p-6 hover-glow group"
-            >
-              <div className={`p-3 rounded-lg ${group.bg} ${group.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>
-                <group.icon size={24} />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">{group.title}</h3>
-              <div className="flex flex-wrap gap-2">
-                {group.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground text-xs font-medium"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
+            <SkillCard key={group.title} group={group} index={i} inView={inView} />
           ))}
         </div>
       </div>
     </section>
+  );
+};
+
+const SkillCard = ({ group, index, inView }: { group: typeof skillGroups[0]; index: number; inView: boolean }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50, rotateY: -15 }}
+      animate={inView ? { opacity: 1, y: 0, rotateY: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
+      whileHover={{ y: -8, scale: 1.03, transition: { duration: 0.3 } }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      className="glass-card p-6 hover-glow group relative overflow-hidden"
+      style={{ perspective: "800px" }}
+    >
+      {/* Shimmer effect on hover */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"
+        initial={{ x: "-100%" }}
+        animate={hovered ? { x: "100%" } : { x: "-100%" }}
+        transition={{ duration: 0.6 }}
+      />
+
+      <div className="relative z-10">
+        <motion.div
+          className={`p-3 rounded-lg ${group.bg} ${group.color} w-fit mb-4`}
+          animate={hovered ? { rotate: [0, -10, 10, 0], scale: 1.15 } : { rotate: 0, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <group.icon size={24} />
+        </motion.div>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{group.title}</h3>
+        <div className="flex flex-wrap gap-2">
+          {group.skills.map((skill, j) => (
+            <motion.span
+              key={skill}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: index * 0.12 + 0.3 + j * 0.06, type: "spring", stiffness: 400, damping: 15 }}
+              whileHover={{ scale: 1.15, y: -3, boxShadow: "0 4px 15px hsl(172 66% 50% / 0.2)" }}
+              className="px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground text-xs font-medium cursor-default"
+            >
+              {skill}
+            </motion.span>
+          ))}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
