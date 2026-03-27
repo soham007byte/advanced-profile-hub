@@ -50,7 +50,7 @@ const HeroSection = () => {
       opacity: 1,
       y: 0,
       rotateX: 0,
-      transition: { delay: 0.8 + i * 0.05, duration: 0.5, ease: [0.215, 0.61, 0.355, 1] },
+      transition: { delay: 0.8 + i * 0.05, duration: 0.5, ease: [0.215, 0.61, 0.355, 1] as const },
     }),
   };
 
